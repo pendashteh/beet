@@ -4,6 +4,23 @@
 # This script faciliates interactions with beetbox vagrant box, a collabrative product of Melbourne Drupal Community.
 #
 # @usage
-#   beetbox		Says hi at the moment!
+#   beetbox		Detects a ready beetbox context
 
-echo "Hey there!"
+script_root=$(pwd)
+function is_beetbox_root() {
+	echo [ -d "$1/.beetbox" ]
+}
+beetbox_root=""
+while [ ! "$(pwd)" = "/" ]
+	do
+	$(is_beetbox_root $(pwd)) && beetbox_root=$(pwd) && break || cd ..
+done
+
+[ ! "$beetbox_root" ] && echo "No beetbox root found on the current path "$script_root && exit
+
+beetbox_config=$beetbox_root"/.beetbox/config.yml"
+
+[ ! -e "$beetbox_config" ] && echo "Config file is missing at "$beetbox_config && exit
+
+echo "Beetbox found at "$beetbox_root
+
