@@ -4,7 +4,11 @@
 # This script faciliates interactions with beetbox vagrant box, a collabrative product of Melbourne Drupal Community.
 #
 # @usage
-#   beetbox		Detects a ready beetbox context
+#   beetbox [{vagrant_command}]		Detects a ready beetbox context and runs the `vagrant {vagrant_command}`
+#
+# @example
+#     $ beetbox up
+#
 
 script_root=$(pwd)
 function is_beetbox_root() {
@@ -23,4 +27,7 @@ beetbox_config=$beetbox_root"/.beetbox/config.yml"
 [ ! -e "$beetbox_config" ] && echo "Config file is missing at "$beetbox_config && exit
 
 echo "Beetbox found at "$beetbox_root
+
+vagrant_command=$([ "$1" ] && echo $1 || echo "status")
+VAGRANT_CWD=$beetbox_root vagrant $vagrant_command
 
