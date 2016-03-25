@@ -11,23 +11,31 @@
 #
 
 script_root=$(pwd)
+
+function main() {
+
+    beetbox_root=$(get_beetbox_root)
+    [ ! "$beetbox_root" ] && echo "No beetbox root found on the current path "$script_root && exit
+
+    beetbox_config=$beetbox_root"/.beetbox/config.yml"
+    [ ! -e "$beetbox_config" ] && echo "Config file is missing at "$beetbox_config && exit
+
+    echo "Beetbox found at "$beetbox_root
+
+    vagrant_command=$([ "$1" ] && echo $1 || echo "status")
+    VAGRANT_CWD=$beetbox_root vagrant $vagrant_command
+}
+
+function get_beetbox_root() {
+    local beetbox_root=""
+    while [ ! "$(pwd)" = "/" ]
+        do
+        $(is_beetbox_root $(pwd)) && beetbox_root=$(pwd) && break || cd ..
+    done
+    echo $beetbox_root
+}
 function is_beetbox_root() {
 	echo [ -d "$1/.beetbox" ]
 }
-beetbox_root=""
-while [ ! "$(pwd)" = "/" ]
-	do
-	$(is_beetbox_root $(pwd)) && beetbox_root=$(pwd) && break || cd ..
-done
 
-[ ! "$beetbox_root" ] && echo "No beetbox root found on the current path "$script_root && exit
-
-beetbox_config=$beetbox_root"/.beetbox/config.yml"
-
-[ ! -e "$beetbox_config" ] && echo "Config file is missing at "$beetbox_config && exit
-
-echo "Beetbox found at "$beetbox_root
-
-vagrant_command=$([ "$1" ] && echo $1 || echo "status")
-VAGRANT_CWD=$beetbox_root vagrant $vagrant_command
-
+main
