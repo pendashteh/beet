@@ -4,26 +4,40 @@
 # This script faciliates interactions with beetbox vagrant box, a collabrative product of Melbourne Drupal Community.
 #
 # @usage
-#   beetbox [{vagrant_command}]		Detects a ready beetbox context and runs the `vagrant {vagrant_command}`
+#   beetbox [{beet_command|vagrant_command}]		Detects a ready beetbox context and runs the `vagrant {vagrant_command}` except for init command.
+#   list of commands:
+#   - init github_user/repo
+#   - [any vagrant command] e.g. status, up, halt
 #
 # @example
-#     $ beetbox up
+#     $ beet init thom8/beetbox
+#     $ beet up
 #
 
 script_root=$(pwd)
-
 function main() {
 
     beetbox_root=$(get_beetbox_root)
-    [ ! "$beetbox_root" ] && echo "No beetbox root found on the current path "$script_root && exit
-
-    beetbox_config=$beetbox_root"/.beetbox/config.yml"
-    [ ! -e "$beetbox_config" ] && echo "Config file is missing at "$beetbox_config && exit
-
-    echo "Beetbox found at "$beetbox_root
-
-    vagrant_command=$([ "$1" ] && echo $1 || echo "status")
-    VAGRANT_CWD=$beetbox_root vagrant $vagrant_command
+    script_command=$([ "$1" ] && echo $1 || echo "status")
+    if [ "$script_command" = "init" ]; then
+        [ "$beetbox_root" ] && [ -d "$beetbox_root" ] && echo "Beetbox has been already initiated at $beetbox_root" && exit
+        beetbox_root="$script_root/.beetbox"
+        init_url="git@github.com:"$2".git"
+        tmp_dir=`mktemp -d -t beettmp` && cd $tmp_dir
+        tmp_repo="$tmp_dir/repo"
+        git clone $init_url $tmp_repo >/dev/null
+        [ ! -d "$tmp_repo/.beetbox" ] && echo "The init repository does not provide .beetbox directory." && bash && exit 1
+        mkdir -p $beetbox_root
+        rsync -av $tmp_repo/.beetbox/ $beetbox_root
+        cd $script_root && vagrant init beet/box
+        rm -rf $tmp_dir
+    else
+        [ ! "$beetbox_root" ] && echo "No beetbox root found on the current path "$script_root && exit
+        beetbox_config=$beetbox_root"/.beetbox/config.yml"
+        [ ! -e "$beetbox_config" ] && echo "Config file is missing at "$beetbox_config && exit
+        echo "Beetbox found at "$beetbox_root
+        VAGRANT_CWD=$beetbox_root vagrant $script_command
+    fi
 }
 
 function get_beetbox_root() {
@@ -38,4 +52,4 @@ function is_beetbox_root() {
 	echo [ -d "$1/.beetbox" ]
 }
 
-main
+main ${@}
