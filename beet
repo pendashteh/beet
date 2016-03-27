@@ -28,7 +28,7 @@ function main() {
         tmp_dir=`mktemp -d -t beettmp` && cd $tmp_dir
         tmp_repo="$tmp_dir/repo"
         git clone $init_url $tmp_repo >/dev/null
-        [ ! -d "$tmp_repo/.beetbox" ] && echo "The init repository does not provide .beetbox directory." && bash && exit 1
+        [ ! -d "$tmp_repo/.beetbox" ] && echo "The init repository does not provide .beetbox directory." && exit 1
         mkdir -p $beetbox_root/.beetbox
         rsync -av $tmp_repo/.beetbox/ $beetbox_root/.beetbox
         VAGRANT_CWD=$beetbox_root vagrant init $vagrant_default_repo
